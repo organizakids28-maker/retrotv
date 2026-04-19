@@ -188,9 +188,9 @@
 
   function jogar(jogo) {
     var cdn = getCDN();
-    sessionStorage.setItem('retrotv_current', JSON.stringify({
-      id: jogo.id, nome: jogo.nome, core: jogo.core, cdn: cdn
-    }));
+    var info = { id: jogo.id, nome: jogo.nome, core: jogo.core, cdn: cdn };
+    if (jogo.nativePath) info.nativePath = jogo.nativePath;
+    sessionStorage.setItem('retrotv_current', JSON.stringify(info));
     localStorage.setItem(LS_ULTIMO, JSON.stringify(jogo));
     window.location.href = 'player.html';
   }
@@ -201,12 +201,19 @@
   var nativeFileName     = null;
   var nativeFileSize     = 0;
 
-  // Callback chamado pelo Java quando o arquivo foi copiado para o cache
+  // Callback: Java está copiando o arquivo
+  window.onNativeFileSaving = function () {
+    document.getElementById('import-status').style.color = '#888899';
+    document.getElementById('import-status').textContent = '⏳ Copiando arquivo...';
+  };
+
+  // Callback chamado pelo Java quando o arquivo foi copiado — sem IndexedDB
   window.onNativeFile = function (path, nome, tamanho) {
     nativeFilePath = path;
     nativeFileName = nome;
     nativeFileSize = tamanho;
     arquivoSelecionado = null;
+    document.getElementById('import-status').textContent = '';
     document.getElementById('arquivo-nome').textContent = nome + ' (' + formatBytes(tamanho) + ')';
     if (!document.getElementById('inp-nome').value.trim()) {
       document.getElementById('inp-nome').value = nome.replace(/\.[^.]+$/, '').replace(/[_\-]+/g, ' ');
@@ -216,7 +223,7 @@
 
   window.onNativeFileError = function (err) {
     document.getElementById('import-status').style.color = '#ff4d4d';
-    document.getElementById('import-status').textContent = '❌ Erro ao ler arquivo: ' + err;
+    document.getElementById('import-status').textContent = '❌ Erro ao copiar arquivo: ' + err;
   };
 
   window.onNativeFileCancelled = function () {
@@ -279,28 +286,20 @@
     document.getElementById('btn-confirmar-import').disabled = true;
 
     if (nativeFilePath) {
-      // Arquivo vem da ponte nativa — ler via XHR
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', nativeFilePath, true);
-      xhr.responseType = 'arraybuffer';
-      xhr.onload = function () {
-        if (xhr.status === 0 || xhr.status === 200) {
-          salvarDados(xhr.response, nome, core, nativeFileSize || xhr.response.byteLength);
-        } else {
-          status.style.color = '#ff4d4d';
-          status.textContent = '❌ Não foi possível ler o arquivo (status ' + xhr.status + ')';
-          document.getElementById('btn-confirmar-import').disabled = false;
-        }
-      };
-      xhr.onerror = function () {
-        status.style.color = '#ff4d4d'; status.textContent = '❌ Erro ao ler arquivo da TV.';
-        document.getElementById('btn-confirmar-import').disabled = false;
-      };
-      xhr.send();
+      // Arquivo nativo — já está salvo no disco pelo Java, só registrar na biblioteca
+      salvarMetadados(gerarID(), nome, core, nativeFileSize, nativeFilePath);
     } else {
-      // Arquivo vem do input[type=file] padrão
+      // Arquivo do browser — salvar ArrayBuffer no IndexedDB
       var reader = new FileReader();
-      reader.onload = function (e) { salvarDados(e.target.result, nome, core, arquivoSelecionado.size); };
+      reader.onload = function (e) {
+        var id = gerarID();
+        dbPut({ id: id, dados: e.target.result }).then(function () {
+          salvarMetadados(id, nome, core, arquivoSelecionado.size, null);
+        }).catch(function (err) {
+          status.style.color = '#ff4d4d'; status.textContent = '❌ Erro ao salvar: ' + err;
+          document.getElementById('btn-confirmar-import').disabled = false;
+        });
+      };
       reader.onerror = function () {
         status.style.color = '#ff4d4d'; status.textContent = '❌ Erro ao ler arquivo.';
         document.getElementById('btn-confirmar-import').disabled = false;
@@ -309,25 +308,22 @@
     }
   }
 
-  function salvarDados(buffer, nome, core, tamanho) {
+  // Registra jogo na biblioteca (sem necessidade de IndexedDB para arquivo nativo)
+  function salvarMetadados(id, nome, core, tamanho, nativePath) {
     var status = document.getElementById('import-status');
-    var id = gerarID();
-    dbPut({ id: id, dados: buffer }).then(function () {
-      var lib = carregarBiblioteca();
-      lib.push({ id: id, nome: nome, core: core, tamanho: tamanho });
-      salvarBiblioteca(lib);
-      status.style.color = '#00e676';
-      status.textContent = '✔ "' + nome + '" adicionado!';
-      document.getElementById('inp-nome').value = '';
-      document.getElementById('arquivo-nome').textContent = 'Nenhum arquivo selecionado';
-      arquivoSelecionado = null; nativeFilePath = null; nativeFileName = null; nativeFileSize = 0;
-      document.getElementById('inp-arquivo').value = '';
-      document.getElementById('btn-confirmar-import').disabled = false;
-      setTimeout(function () { status.textContent = ''; }, 3000);
-    }).catch(function (err) {
-      status.style.color = '#ff4d4d'; status.textContent = '❌ Erro ao salvar: ' + err;
-      document.getElementById('btn-confirmar-import').disabled = false;
-    });
+    var lib = carregarBiblioteca();
+    var jogo = { id: id, nome: nome, core: core, tamanho: tamanho };
+    if (nativePath) jogo.nativePath = nativePath;
+    lib.push(jogo);
+    salvarBiblioteca(lib);
+    status.style.color = '#00e676';
+    status.textContent = '✔ "' + nome + '" adicionado!';
+    document.getElementById('inp-nome').value = '';
+    document.getElementById('arquivo-nome').textContent = 'Nenhum arquivo selecionado';
+    arquivoSelecionado = null; nativeFilePath = null; nativeFileName = null; nativeFileSize = 0;
+    document.getElementById('inp-arquivo').value = '';
+    document.getElementById('btn-confirmar-import').disabled = false;
+    setTimeout(function () { status.textContent = ''; }, 3000);
   }
 
   // ─── MENU HOME ────────────────────────────────────────────────────────────
