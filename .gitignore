@@ -1,0 +1,18 @@
+# Android
+android/.gradle/
+android/local.properties
+android/build/
+android/app/build/
+android/.idea/
+*.apk
+*.aab
+*.keystore
+!debug.keystore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
