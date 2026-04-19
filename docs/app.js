@@ -196,12 +196,39 @@
   }
 
   // ─── IMPORTAR ─────────────────────────────────────────────────────────────
-  var arquivoSelecionado = null;
+  var arquivoSelecionado = null;   // File object (browser normal)
+  var nativeFilePath     = null;   // caminho file:// (Android TV bridge)
+  var nativeFileName     = null;
+  var nativeFileSize     = 0;
 
+  // Callback chamado pelo Java quando o arquivo foi copiado para o cache
+  window.onNativeFile = function (path, nome, tamanho) {
+    nativeFilePath = path;
+    nativeFileName = nome;
+    nativeFileSize = tamanho;
+    arquivoSelecionado = null;
+    document.getElementById('arquivo-nome').textContent = nome + ' (' + formatBytes(tamanho) + ')';
+    if (!document.getElementById('inp-nome').value.trim()) {
+      document.getElementById('inp-nome').value = nome.replace(/\.[^.]+$/, '').replace(/[_\-]+/g, ' ');
+    }
+    document.getElementById('btn-confirmar-import').focus();
+  };
+
+  window.onNativeFileError = function (err) {
+    document.getElementById('import-status').style.color = '#ff4d4d';
+    document.getElementById('import-status').textContent = '❌ Erro ao ler arquivo: ' + err;
+  };
+
+  window.onNativeFileCancelled = function () {
+    document.getElementById('import-status').textContent = '';
+  };
+
+  // Seleção via input[type=file] padrão (funciona em browser normal e alguns dispositivos)
   document.getElementById('inp-arquivo').addEventListener('change', function () {
     var f = this.files[0];
     if (f) {
       arquivoSelecionado = f;
+      nativeFilePath = null;
       document.getElementById('arquivo-nome').textContent = f.name + ' (' + formatBytes(f.size) + ')';
       if (!document.getElementById('inp-nome').value.trim()) {
         document.getElementById('inp-nome').value = f.name.replace(/\.[^.]+$/, '').replace(/[_\-]+/g, ' ');
@@ -209,8 +236,24 @@
     }
   });
 
+  // Botão "Escolher arquivo" — usa ponte nativa no Android TV, ou input[type=file] no browser
+  function abrirSeletorArquivo() {
+    if (window.RetroTVNative && window.RetroTVNative.pickFile) {
+      window.RetroTVNative.pickFile();
+    } else {
+      document.getElementById('inp-arquivo').click();
+    }
+  }
+
+  document.getElementById('label-arquivo').addEventListener('click', function (e) {
+    if (window.RetroTVNative && window.RetroTVNative.pickFile) {
+      e.preventDefault();
+      abrirSeletorArquivo();
+    }
+  });
+
   document.getElementById('label-arquivo').addEventListener('keydown', function (e) {
-    if (isEnter(e)) { e.preventDefault(); document.getElementById('inp-arquivo').click(); }
+    if (isEnter(e)) { e.preventDefault(); abrirSeletorArquivo(); }
   });
 
   document.getElementById('btn-confirmar-import').addEventListener('click', confirmarImport);
@@ -227,39 +270,64 @@
       status.style.color = '#ff4d4d'; status.textContent = '⚠ Digite o nome do jogo.';
       document.getElementById('inp-nome').focus(); return;
     }
-    if (!arquivoSelecionado) {
+    if (!arquivoSelecionado && !nativeFilePath) {
       status.style.color = '#ff4d4d'; status.textContent = '⚠ Selecione um arquivo ROM.';
       document.getElementById('label-arquivo').focus(); return;
     }
+
     status.style.color = '#888899'; status.textContent = '⏳ Salvando...';
     document.getElementById('btn-confirmar-import').disabled = true;
 
-    var id      = gerarID();
-    var tamanho = arquivoSelecionado.size;
-    var reader  = new FileReader();
-    reader.onload = function (e) {
-      dbPut({ id: id, dados: e.target.result }).then(function () {
-        var lib = carregarBiblioteca();
-        lib.push({ id: id, nome: nome, core: core, tamanho: tamanho });
-        salvarBiblioteca(lib);
-        status.style.color = '#00e676';
-        status.textContent = '✔ "' + nome + '" adicionado!';
-        document.getElementById('inp-nome').value = '';
-        document.getElementById('arquivo-nome').textContent = 'Nenhum arquivo selecionado';
-        arquivoSelecionado = null;
-        document.getElementById('inp-arquivo').value = '';
+    if (nativeFilePath) {
+      // Arquivo vem da ponte nativa — ler via XHR
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', nativeFilePath, true);
+      xhr.responseType = 'arraybuffer';
+      xhr.onload = function () {
+        if (xhr.status === 0 || xhr.status === 200) {
+          salvarDados(xhr.response, nome, core, nativeFileSize || xhr.response.byteLength);
+        } else {
+          status.style.color = '#ff4d4d';
+          status.textContent = '❌ Não foi possível ler o arquivo (status ' + xhr.status + ')';
+          document.getElementById('btn-confirmar-import').disabled = false;
+        }
+      };
+      xhr.onerror = function () {
+        status.style.color = '#ff4d4d'; status.textContent = '❌ Erro ao ler arquivo da TV.';
         document.getElementById('btn-confirmar-import').disabled = false;
-        setTimeout(function () { status.textContent = ''; }, 3000);
-      }).catch(function (err) {
-        status.style.color = '#ff4d4d'; status.textContent = '❌ Erro: ' + err;
+      };
+      xhr.send();
+    } else {
+      // Arquivo vem do input[type=file] padrão
+      var reader = new FileReader();
+      reader.onload = function (e) { salvarDados(e.target.result, nome, core, arquivoSelecionado.size); };
+      reader.onerror = function () {
+        status.style.color = '#ff4d4d'; status.textContent = '❌ Erro ao ler arquivo.';
         document.getElementById('btn-confirmar-import').disabled = false;
-      });
-    };
-    reader.onerror = function () {
-      status.style.color = '#ff4d4d'; status.textContent = '❌ Erro ao ler arquivo.';
+      };
+      reader.readAsArrayBuffer(arquivoSelecionado);
+    }
+  }
+
+  function salvarDados(buffer, nome, core, tamanho) {
+    var status = document.getElementById('import-status');
+    var id = gerarID();
+    dbPut({ id: id, dados: buffer }).then(function () {
+      var lib = carregarBiblioteca();
+      lib.push({ id: id, nome: nome, core: core, tamanho: tamanho });
+      salvarBiblioteca(lib);
+      status.style.color = '#00e676';
+      status.textContent = '✔ "' + nome + '" adicionado!';
+      document.getElementById('inp-nome').value = '';
+      document.getElementById('arquivo-nome').textContent = 'Nenhum arquivo selecionado';
+      arquivoSelecionado = null; nativeFilePath = null; nativeFileName = null; nativeFileSize = 0;
+      document.getElementById('inp-arquivo').value = '';
       document.getElementById('btn-confirmar-import').disabled = false;
-    };
-    reader.readAsArrayBuffer(arquivoSelecionado);
+      setTimeout(function () { status.textContent = ''; }, 3000);
+    }).catch(function (err) {
+      status.style.color = '#ff4d4d'; status.textContent = '❌ Erro ao salvar: ' + err;
+      document.getElementById('btn-confirmar-import').disabled = false;
+    });
   }
 
   // ─── MENU HOME ────────────────────────────────────────────────────────────
