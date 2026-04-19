@@ -178,18 +178,24 @@
     document.body.appendChild(script);
   }
 
-  abrirDB().then(function (db) {
-    return buscarROM(db, gameInfo.id);
-  }).then(function (row) {
-    if (!row || !row.dados) {
-      mostrarErro('ROM não encontrada.', 'Importe o jogo novamente.');
-      return;
-    }
-    var blob = new Blob([row.dados], { type: 'application/octet-stream' });
-    launchEmulator(blob);
-  }).catch(function (err) {
-    mostrarErro('Erro ao ler banco de dados.', String(err));
-  });
+  if (gameInfo.nativePath) {
+    // Arquivo nativo no disco da TV — usar diretamente (mais rápido, sem IndexedDB)
+    launchEmulator(gameInfo.nativePath);
+  } else {
+    // Arquivo no IndexedDB (importado pelo browser)
+    abrirDB().then(function (db) {
+      return buscarROM(db, gameInfo.id);
+    }).then(function (row) {
+      if (!row || !row.dados) {
+        mostrarErro('ROM não encontrada.', 'Importe o jogo novamente.');
+        return;
+      }
+      var blob = new Blob([row.dados], { type: 'application/octet-stream' });
+      launchEmulator(blob);
+    }).catch(function (err) {
+      mostrarErro('Erro ao ler banco de dados.', String(err));
+    });
+  }
 
   document.getElementById('btn-sair').addEventListener('click', voltarBiblioteca);
 
