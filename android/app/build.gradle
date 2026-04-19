@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.retrotv.app"
-        minSdkVersion 21         // Android 5.0 — WebView moderno
+        minSdkVersion 17         // Android 4.2 — compatível com TVs antigas
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
