@@ -6,132 +6,66 @@
   <title>RetroTV — Player</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0a0a0f;
-      --accent: #6c63ff;
-      --text: #e8e8f0;
-      --text-dim: #888899;
-      --border: #2a2a3a;
+      --bg: #0a0a0f; --accent: #6c63ff;
+      --text: #e8e8f0; --text-dim: #888899; --border: #2a2a3a;
     }
-
     html, body {
       width: 100%; height: 100%;
-      background: #000;
-      color: var(--text);
+      background: #000; color: var(--text);
       font-family: 'Segoe UI', system-ui, sans-serif;
       overflow: hidden;
     }
-
-    /* BARRA SUPERIOR */
     #player-bar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 56px;
-      background: rgba(10,10,15,0.95);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 16px;
-      z-index: 100;
-      transition: opacity 0.3s;
+      position: fixed; top: 0; left: 0; right: 0; height: 56px;
+      background: rgba(10,10,15,0.95); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 16px; z-index: 100; transition: opacity 0.3s;
     }
     #player-bar.oculto { opacity: 0; pointer-events: none; }
-
     .pbar-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      font-size: 14px;
-      padding: 7px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-      outline: none;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-dim); font-size: 14px; padding: 7px 14px;
+      border-radius: 6px; cursor: pointer; transition: all 0.15s;
+      white-space: nowrap; outline: none;
     }
     .pbar-btn:hover, .pbar-btn:focus {
-      border-color: var(--accent);
-      color: var(--text);
+      border-color: var(--accent); color: var(--text);
       background: rgba(108,99,255,0.15);
       box-shadow: 0 0 0 2px rgba(108,99,255,0.3);
     }
-
     #player-title {
-      flex: 1;
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      flex: 1; font-size: 17px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-
-    .pbar-hint {
-      font-size: 13px;
-      color: var(--text-dim);
-    }
-
-    /* EMULADOR */
+    .pbar-hint { font-size: 13px; color: var(--text-dim); }
     #emulator-wrap {
-      position: fixed;
-      top: 56px; left: 0; right: 0; bottom: 0;
-      background: #000;
+      position: fixed; top: 56px; left: 0; right: 0; bottom: 0; background: #000;
     }
     #emulator-wrap.fullscreen { top: 0; }
-
-    #game {
-      width: 100%;
-      height: 100%;
-    }
-
-    /* ERRO / CARREGANDO */
+    #game { width: 100%; height: 100%; }
     #status-overlay {
       position: fixed; inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #000;
-      z-index: 50;
-      gap: 20px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #000; z-index: 50; gap: 20px;
     }
     #status-overlay.hidden { display: none; }
     #status-icon { font-size: 64px; }
-    #status-msg {
-      font-size: 24px;
-      font-weight: 600;
-      text-align: center;
-      max-width: 600px;
-    }
-    #status-sub {
-      font-size: 17px;
-      color: var(--text-dim);
-      text-align: center;
-      max-width: 600px;
-    }
+    #status-msg { font-size: 24px; font-weight: 600; text-align: center; max-width: 600px; }
+    #status-sub { font-size: 17px; color: var(--text-dim); text-align: center; max-width: 600px; }
     #btn-voltar-err {
-      margin-top: 20px;
-      background: var(--accent);
-      border: none;
-      color: white;
-      font-size: 18px;
-      font-weight: 700;
-      padding: 14px 32px;
-      border-radius: 10px;
-      cursor: pointer;
-      outline: none;
+      margin-top: 20px; background: var(--accent); border: none;
+      color: white; font-size: 18px; font-weight: 700;
+      padding: 14px 32px; border-radius: 10px; cursor: pointer; outline: none;
     }
     #btn-voltar-err:hover, #btn-voltar-err:focus {
-      filter: brightness(1.2);
-      box-shadow: 0 0 0 3px rgba(108,99,255,0.4);
+      filter: brightness(1.2); box-shadow: 0 0 0 3px rgba(108,99,255,0.4);
     }
   </style>
 </head>
 <body>
 
-<!-- STATUS / CARREGANDO -->
 <div id="status-overlay">
   <div id="status-icon">⏳</div>
   <div id="status-msg">Carregando jogo...</div>
@@ -139,17 +73,15 @@
   <button id="btn-voltar-err" style="display:none" onclick="voltarBiblioteca()">← Voltar à Biblioteca</button>
 </div>
 
-<!-- BARRA DO PLAYER -->
 <div id="player-bar">
-  <button class="pbar-btn" id="btn-sair" title="ESC">⬅ Sair</button>
+  <button class="pbar-btn" id="btn-sair">⬅ Sair</button>
   <span id="player-title">—</span>
-  <button class="pbar-btn" id="btn-salvar" title="S">💾 Salvar</button>
-  <button class="pbar-btn" id="btn-carregar" title="L">📂 Carregar</button>
-  <button class="pbar-btn" id="btn-full" title="F">⛶ Full</button>
+  <button class="pbar-btn" id="btn-salvar">💾 Salvar</button>
+  <button class="pbar-btn" id="btn-carregar">📂 Carregar</button>
+  <button class="pbar-btn" id="btn-full">⛶ Full</button>
   <span class="pbar-hint">ESC=Sair &nbsp; S=Salvar &nbsp; L=Carregar &nbsp; F=Tela Cheia</span>
 </div>
 
-<!-- CONTAINER DO EMULADOR -->
 <div id="emulator-wrap">
   <div id="game"></div>
 </div>
@@ -158,20 +90,14 @@
 (function () {
   'use strict';
 
-  // ─── Ler jogo do sessionStorage ───────────────────────────────────────────
-  let gameInfo;
-  try {
-    gameInfo = JSON.parse(sessionStorage.getItem('retrotv_current') || '');
-  } catch (e) { gameInfo = null; }
-
-  const overlay   = document.getElementById('status-overlay');
-  const overlayMsg = document.getElementById('status-msg');
-  const overlaySub = document.getElementById('status-sub');
-  const overlayIcon = document.getElementById('status-icon');
-  const btnVoltarErr = document.getElementById('btn-voltar-err');
-  const playerTitle = document.getElementById('player-title');
-  const bar = document.getElementById('player-bar');
-  const emWrap = document.getElementById('emulator-wrap');
+  var overlay     = document.getElementById('status-overlay');
+  var overlayMsg  = document.getElementById('status-msg');
+  var overlaySub  = document.getElementById('status-sub');
+  var overlayIcon = document.getElementById('status-icon');
+  var btnVoltarErr = document.getElementById('btn-voltar-err');
+  var playerTitle = document.getElementById('player-title');
+  var bar         = document.getElementById('player-bar');
+  var emWrap      = document.getElementById('emulator-wrap');
 
   function voltarBiblioteca() {
     window.location.href = 'index.html';
@@ -180,11 +106,18 @@
 
   function mostrarErro(msg, sub) {
     overlayIcon.textContent = '❌';
-    overlayMsg.textContent = msg;
-    overlaySub.textContent = sub || '';
+    overlayMsg.textContent  = msg;
+    overlaySub.textContent  = sub || '';
     btnVoltarErr.style.display = 'inline-block';
+    btnVoltarErr.focus();
     overlay.classList.remove('hidden');
   }
+
+  var gameInfo = null;
+  try {
+    var raw = sessionStorage.getItem('retrotv_current');
+    if (raw) gameInfo = JSON.parse(raw);
+  } catch (e) { gameInfo = null; }
 
   if (!gameInfo || !gameInfo.id || !gameInfo.core) {
     mostrarErro('Nenhum jogo selecionado.', 'Volte à biblioteca e escolha um jogo.');
@@ -194,18 +127,17 @@
   playerTitle.textContent = gameInfo.nome || 'Jogo';
   document.title = 'RetroTV — ' + (gameInfo.nome || 'Jogo');
 
-  // ─── Buscar ROM no IndexedDB ──────────────────────────────────────────────
-  const DB_NAME = 'RetroTVDB';
-  const DB_VER  = 1;
-  const STORE   = 'roms';
+  var DB_NAME = 'RetroTVDB';
+  var DB_VER  = 1;
+  var STORE   = 'roms';
 
   function abrirDB() {
     return new Promise(function (resolve, reject) {
       var req = indexedDB.open(DB_NAME, DB_VER);
       req.onupgradeneeded = function (e) {
-        var db = e.target.result;
-        if (!db.objectStoreNames.contains(STORE)) {
-          db.createObjectStore(STORE, { keyPath: 'id' });
+        var d = e.target.result;
+        if (!d.objectStoreNames.contains(STORE)) {
+          d.createObjectStore(STORE, { keyPath: 'id' });
         }
       };
       req.onsuccess = function (e) { resolve(e.target.result); };
@@ -215,33 +147,28 @@
 
   function buscarROM(db, id) {
     return new Promise(function (resolve, reject) {
-      var tx = db.transaction(STORE, 'readonly');
+      var tx  = db.transaction(STORE, 'readonly');
       var req = tx.objectStore(STORE).get(id);
       req.onsuccess = function (e) { resolve(e.target.result); };
       req.onerror   = function (e) { reject(e.target.error); };
     });
   }
 
-  // ─── Inicializar EmulatorJS ───────────────────────────────────────────────
   function launchEmulator(blob) {
     var cdn = gameInfo.cdn || 'https://cdn.emulatorjs.org/stable/data/';
-
-    window.EJS_player       = '#game';
-    window.EJS_gameName     = gameInfo.nome || 'game';
-    window.EJS_gameUrl      = blob;           // File/Blob — suportado pelo EJS
-    window.EJS_core         = gameInfo.core;
-    window.EJS_pathtodata   = cdn;
+    window.EJS_player        = '#game';
+    window.EJS_gameName      = gameInfo.nome || 'game';
+    window.EJS_gameUrl       = blob;
+    window.EJS_core          = gameInfo.core;
+    window.EJS_pathtodata    = cdn;
     window.EJS_startOnLoaded = true;
-    window.EJS_language     = 'pt-BR';
-    window.EJS_volume       = 0.8;
-
-    // Ocultar overlay ao iniciar
-    window.EJS_onGameStart = function () {
+    window.EJS_language      = 'pt-BR';
+    window.EJS_volume        = 0.8;
+    window.EJS_onGameStart   = function () {
       overlay.classList.add('hidden');
     };
-
-    var script = document.createElement('script');
-    script.src = cdn + 'loader.js';
+    var script    = document.createElement('script');
+    script.src    = cdn + 'loader.js';
     script.onerror = function () {
       mostrarErro(
         'Falha ao carregar EmulatorJS.',
@@ -255,7 +182,7 @@
     return buscarROM(db, gameInfo.id);
   }).then(function (row) {
     if (!row || !row.dados) {
-      mostrarErro('ROM não encontrada no banco de dados.', 'Importe o jogo novamente.');
+      mostrarErro('ROM não encontrada.', 'Importe o jogo novamente.');
       return;
     }
     var blob = new Blob([row.dados], { type: 'application/octet-stream' });
@@ -264,7 +191,6 @@
     mostrarErro('Erro ao ler banco de dados.', String(err));
   });
 
-  // ─── Controles da barra ───────────────────────────────────────────────────
   document.getElementById('btn-sair').addEventListener('click', voltarBiblioteca);
 
   document.getElementById('btn-salvar').addEventListener('click', function () {
@@ -280,65 +206,32 @@
   });
 
   var modoFull = false;
-  document.getElementById('btn-full').addEventListener('click', toggleFull);
 
   function toggleFull() {
     modoFull = !modoFull;
     if (modoFull) {
       bar.classList.add('oculto');
       emWrap.classList.add('fullscreen');
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
-      }
     } else {
       bar.classList.remove('oculto');
       emWrap.classList.remove('fullscreen');
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
     }
   }
 
-  // Auto-ocultar barra em fullscreen real
-  document.addEventListener('fullscreenchange', function () {
-    if (!document.fullscreenElement && modoFull) {
-      modoFull = false;
-      bar.classList.remove('oculto');
-      emWrap.classList.remove('fullscreen');
-    }
-  });
+  document.getElementById('btn-full').addEventListener('click', toggleFull);
 
-  // ─── Atalhos de teclado ───────────────────────────────────────────────────
   document.addEventListener('keydown', function (e) {
-    switch (e.key) {
-      case 'Escape': voltarBiblioteca(); break;
-      case 's': case 'S':
-        if (!e.ctrlKey && !e.metaKey && window.EJS_emulator) {
-          try { window.EJS_emulator.saveState(); } catch (_) {}
-        }
-        break;
-      case 'l': case 'L':
-        if (!e.ctrlKey && !e.metaKey && window.EJS_emulator) {
-          try { window.EJS_emulator.loadState(); } catch (_) {}
-        }
-        break;
-      case 'f': case 'F':
-        if (!e.ctrlKey && !e.metaKey) toggleFull();
-        break;
+    var k = e.key || '';
+    var kc = e.keyCode || 0;
+    if (k === 'Escape' || kc === 27) { voltarBiblioteca(); return; }
+    if (k === 's' || k === 'S') {
+      if (window.EJS_emulator) { try { window.EJS_emulator.saveState(); } catch (_) {} }
     }
+    if (k === 'l' || k === 'L') {
+      if (window.EJS_emulator) { try { window.EJS_emulator.loadState(); } catch (_) {} }
+    }
+    if (k === 'f' || k === 'F') { toggleFull(); }
   });
-
-  // Ocultar barra automaticamente após 4s de inatividade
-  var barTimer;
-  function resetBarTimer() {
-    bar.classList.remove('oculto');
-    clearTimeout(barTimer);
-    if (modoFull) {
-      barTimer = setTimeout(function () { bar.classList.add('oculto'); }, 4000);
-    }
-  }
-  document.addEventListener('mousemove', resetBarTimer);
-  document.addEventListener('keydown', resetBarTimer);
 
 })();
 </script>
