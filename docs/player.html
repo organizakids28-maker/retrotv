@@ -113,6 +113,24 @@
     overlay.classList.remove('hidden');
   }
 
+  // ── Verificar suporte a WebAssembly (obrigatório para EmulatorJS) ──
+  var temWasm = (function () {
+    try {
+      return typeof WebAssembly === 'object' &&
+             typeof WebAssembly.instantiate === 'function';
+    } catch (e) { return false; }
+  }());
+
+  if (!temWasm) {
+    mostrarErro(
+      '⚠️ Android muito antigo',
+      'Sua TV tem Android 4.4, que não suporta o emulador. ' +
+      'Para jogar é necessário Android 5.0 ou mais novo. ' +
+      'Considere usar um pendrive com Android TV mais recente (ex: Chromecast, Fire Stick).'
+    );
+    return;
+  }
+
   var gameInfo = null;
   try {
     var raw = sessionStorage.getItem('retrotv_current');
@@ -164,15 +182,38 @@
     window.EJS_startOnLoaded = true;
     window.EJS_language      = 'pt-BR';
     window.EJS_volume        = 0.8;
-    window.EJS_onGameStart   = function () {
+
+    // Jogo iniciou — esconder tela de carregamento
+    window.EJS_onGameStart = function () {
       overlay.classList.add('hidden');
+      if (timeoutTimer) { clearTimeout(timeoutTimer); timeoutTimer = null; }
     };
+
+    // Erro reportado pelo EmulatorJS
+    window.EJS_onLoadError = function () {
+      mostrarErro(
+        'O emulador não conseguiu carregar o jogo.',
+        'Verifique se o arquivo ROM é válido e o sistema está correto, depois tente novamente.'
+      );
+    };
+
+    // Timeout: se em 45s o jogo não iniciou, mostrar erro
+    var timeoutTimer = setTimeout(function () {
+      if (!overlay.classList.contains('hidden')) {
+        mostrarErro(
+          'Tempo esgotado ao carregar o jogo.',
+          'Possível problema: conexão lenta, arquivo corrompido ou sistema (core) incorreto.'
+        );
+      }
+    }, 45000);
+
     var script    = document.createElement('script');
     script.src    = cdn + 'loader.js';
     script.onerror = function () {
+      clearTimeout(timeoutTimer);
       mostrarErro(
-        'Falha ao carregar EmulatorJS.',
-        'Verifique sua conexão com a internet e tente novamente.'
+        'Sem conexão com a internet.',
+        'O emulador precisa de internet para baixar os arquivos do jogo na primeira vez.'
       );
     };
     document.body.appendChild(script);
