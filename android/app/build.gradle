@@ -4,6 +4,7 @@ plugins {
 
 android {
     compileSdkVersion 34
+    namespace 'com.retrotv.app'
 
     defaultConfig {
         applicationId "com.retrotv.app"
