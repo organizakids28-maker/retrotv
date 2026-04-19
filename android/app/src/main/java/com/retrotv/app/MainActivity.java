@@ -96,10 +96,23 @@ public class MainActivity extends Activity {
                     mFilePathCallback.onReceiveValue(null);
                 }
                 mFilePathCallback = filePathCallback;
-                Intent intent = fileChooserParams.createIntent();
+
+                // Intent robusto para Android TV — funciona com gerenciadores de arquivo
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("*/*");
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
+
                 try {
-                    startActivityForResult(intent, PICK_FILE_REQUEST);
+                    startActivityForResult(
+                        Intent.createChooser(intent, "Escolher ROM"),
+                        PICK_FILE_REQUEST);
                 } catch (Exception e) {
+                    android.widget.Toast.makeText(
+                        MainActivity.this,
+                        "Instale um gerenciador de arquivos (ex: ES Explorer) e tente novamente.",
+                        android.widget.Toast.LENGTH_LONG).show();
+                    mFilePathCallback.onReceiveValue(null);
                     mFilePathCallback = null;
                     return false;
                 }
