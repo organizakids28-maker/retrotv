@@ -146,6 +146,11 @@ public class MainActivity extends Activity {
     }
 
     private void processarArquivoNativo(final Uri uri) {
+        // Mostrar progresso imediato
+        mWebView.post(new Runnable() { public void run() {
+            mWebView.evaluateJavascript("window.onNativeFileSaving && window.onNativeFileSaving()", null);
+        }});
+
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -158,9 +163,12 @@ public class MainActivity extends Activity {
                         cursor.close();
                     }
 
-                    // Copiar para cache do app
-                    File cacheDir = getCacheDir();
-                    File destino = new File(cacheDir, "rom_temp");
+                    // Sanitizar nome e salvar em diretório persistente (getFilesDir)
+                    String nomeSafe = nome.replaceAll("[^a-zA-Z0-9._\\-]", "_");
+                    File romsDir = new File(getFilesDir(), "roms");
+                    if (!romsDir.exists()) romsDir.mkdirs();
+                    File destino = new File(romsDir, nomeSafe);
+
                     InputStream is = getContentResolver().openInputStream(uri);
                     FileOutputStream fos = new FileOutputStream(destino);
                     byte[] buf = new byte[65536];
@@ -171,6 +179,7 @@ public class MainActivity extends Activity {
 
                     final String nomeF = nome;
                     final long totalF = total;
+                    // file:// URL acessível pelo WebView
                     final String path = "file://" + destino.getAbsolutePath();
 
                     mWebView.post(new Runnable() { public void run() {
