@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RetroTV</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- TELA INICIAL -->
+<div id="screen-home" class="screen active">
+  <div class="logo-area">
+    <div class="logo-icon">📺</div>
+    <div class="logo-text">RetroTV</div>
+    <div class="logo-sub">Sua biblioteca retrô na TV</div>
+  </div>
+  <nav class="menu-vertical" id="home-menu">
+    <button class="menu-btn" data-action="continuar">▶  Continuar Último Jogo</button>
+    <button class="menu-btn" data-action="biblioteca">🎮  Biblioteca</button>
+    <button class="menu-btn" data-action="importar">📂  Importar Jogo</button>
+    <button class="menu-btn" data-action="configuracoes">⚙️  Configurações</button>
+  </nav>
+  <div class="hint">↑↓ Navegar &nbsp;|&nbsp; Enter Selecionar</div>
+</div>
+
+<!-- TELA BIBLIOTECA -->
+<div id="screen-biblioteca" class="screen">
+  <div class="topbar">
+    <button class="back-btn" id="back-biblioteca">← Voltar</button>
+    <h2 class="topbar-title">🎮 Biblioteca</h2>
+  </div>
+  <div id="game-list" class="game-list">
+    <div class="empty-msg" id="empty-biblioteca">
+      Nenhum jogo importado ainda.<br>
+      Vá em <strong>Importar Jogo</strong> para adicionar.
+    </div>
+  </div>
+  <div class="hint">↑↓ Navegar &nbsp;|&nbsp; Enter Jogar &nbsp;|&nbsp; Delete Remover</div>
+</div>
+
+<!-- TELA IMPORTAR -->
+<div id="screen-importar" class="screen">
+  <div class="topbar">
+    <button class="back-btn" id="back-importar">← Voltar</button>
+    <h2 class="topbar-title">📂 Importar Jogo</h2>
+  </div>
+  <div class="import-area">
+    <p class="import-desc">
+      Selecione um arquivo ROM (.nes .sfc .gba .gb .gbc .n64 .smd .md .zip)
+    </p>
+    <div class="import-fields">
+      <label class="field-label">Nome do Jogo</label>
+      <input type="text" id="inp-nome" class="field-input" placeholder="Ex: Super Mario Bros" />
+
+      <label class="field-label">Sistema / Core</label>
+      <select id="inp-sistema" class="field-input">
+        <option value="nes">NES (Nintendo 8-bit)</option>
+        <option value="snes">SNES (Super Nintendo)</option>
+        <option value="gba">Game Boy Advance</option>
+        <option value="gb">Game Boy / Color</option>
+        <option value="n64">Nintendo 64</option>
+        <option value="segaMD">Mega Drive / Genesis</option>
+        <option value="psx">PlayStation 1</option>
+        <option value="segaMS">Master System</option>
+        <option value="segaGG">Game Gear</option>
+        <option value="arcade">Arcade (MAME)</option>
+      </select>
+
+      <label class="field-label">Arquivo ROM</label>
+      <label class="file-btn" id="label-arquivo" tabindex="0">
+        📁 Escolher arquivo...
+        <input type="file" id="inp-arquivo"
+          accept=".nes,.sfc,.smc,.gba,.gb,.gbc,.n64,.z64,.smd,.md,.gen,.zip,.7z" />
+      </label>
+      <div id="arquivo-nome" class="arquivo-nome">Nenhum arquivo selecionado</div>
+    </div>
+    <button class="btn-primary" id="btn-confirmar-import">✔ Adicionar à Biblioteca</button>
+    <div id="import-status" class="import-status"></div>
+  </div>
+</div>
+
+<!-- TELA CONFIGURAÇÕES -->
+<div id="screen-config" class="screen">
+  <div class="topbar">
+    <button class="back-btn" id="back-config">← Voltar</button>
+    <h2 class="topbar-title">⚙️ Configurações</h2>
+  </div>
+  <div class="config-list">
+    <div class="config-item">
+      <span class="config-label">CDN do EmulatorJS</span>
+      <select id="cfg-cdn" class="field-input config-select">
+        <option value="https://cdn.emulatorjs.org/stable/data/">Oficial (cdn.emulatorjs.org)</option>
+        <option value="https://cdn.emulatorjs.org/latest/data/">Latest</option>
+      </select>
+    </div>
+    <div class="config-item">
+      <span class="config-label">Limpar biblioteca</span>
+      <button class="btn-danger" id="btn-limpar">🗑 Limpar tudo</button>
+    </div>
+    <div class="config-item">
+      <span class="config-label">Versão</span>
+      <span class="config-value">RetroTV v1.0</span>
+    </div>
+  </div>
+  <div class="hint">↑↓ Navegar &nbsp;|&nbsp; Enter Selecionar &nbsp;|&nbsp; Backspace Voltar</div>
+</div>
+
+<!-- MODAL CONFIRMAÇÃO -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal-box">
+    <p id="modal-msg">Tem certeza?</p>
+    <div class="modal-btns">
+      <button id="modal-nao" class="modal-btn nao">Não</button>
+      <button id="modal-sim" class="modal-btn sim">Sim</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
