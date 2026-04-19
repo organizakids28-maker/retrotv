@@ -179,8 +179,23 @@
   }
 
   if (gameInfo.nativePath) {
-    // Arquivo nativo no disco da TV — usar diretamente (mais rápido, sem IndexedDB)
-    launchEmulator(gameInfo.nativePath);
+    // Arquivo nativo — ler via XHR e converter para Blob (EmulatorJS não suporta file:// direto)
+    overlayMsg.textContent = 'Carregando ROM do disco...';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', gameInfo.nativePath, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function () {
+      if (xhr.status === 0 || xhr.status === 200) {
+        var blob = new Blob([xhr.response], { type: 'application/octet-stream' });
+        launchEmulator(blob);
+      } else {
+        mostrarErro('Erro ao carregar ROM (' + xhr.status + ').', 'Reimporte o jogo e tente novamente.');
+      }
+    };
+    xhr.onerror = function () {
+      mostrarErro('Não foi possível ler o arquivo.', 'Reimporte o jogo e tente novamente.');
+    };
+    xhr.send();
   } else {
     // Arquivo no IndexedDB (importado pelo browser)
     abrirDB().then(function (db) {
