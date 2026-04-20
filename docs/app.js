@@ -414,15 +414,10 @@
   }
 
   function assistirVideo(v) {
-    document.getElementById('video-player-titulo').textContent = v.titulo;
-    document.getElementById('video-iframe').src =
-      'https://www.youtube-nocookie.com/embed/' + v.ytId + '?autoplay=1&rel=0';
-    irPara('video-player');
+    window.location.href = 'https://www.youtube.com/watch?v=' + v.ytId;
   }
 
-  function pararVideo() {
-    document.getElementById('video-iframe').src = '';
-  }
+  function pararVideo() {}
 
   document.getElementById('btn-abrir-add-video').addEventListener('click', function () {
     irPara('add-video');
