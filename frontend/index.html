@@ -19,6 +19,7 @@
     <button class="menu-btn" data-action="continuar">▶  Continuar Último Jogo</button>
     <button class="menu-btn" data-action="biblioteca">🎮  Biblioteca</button>
     <button class="menu-btn" data-action="importar">📂  Importar Jogo</button>
+    <button class="menu-btn" data-action="videos">📺  Vídeos</button>
     <button class="menu-btn" data-action="configuracoes">⚙️  Configurações</button>
   </nav>
   <div class="hint">↑↓ Navegar &nbsp;|&nbsp; Enter Selecionar</div>
@@ -80,6 +81,65 @@
   </div>
 </div>
 
+<!-- TELA VÍDEOS -->
+<div id="screen-videos" class="screen">
+  <div class="topbar">
+    <button class="back-btn" id="back-videos">← Voltar</button>
+    <h2 class="topbar-title">📺 Vídeos</h2>
+    <button class="btn-add-video" id="btn-abrir-add-video">＋ Adicionar</button>
+  </div>
+  <div id="video-grid" class="video-grid">
+    <div class="empty-msg" id="empty-videos">
+      Nenhum vídeo adicionado ainda.<br>
+      Clique em <strong>＋ Adicionar</strong> para incluir um vídeo do YouTube.
+    </div>
+  </div>
+  <div class="hint">↑↓←→ Navegar &nbsp;|&nbsp; Enter Assistir &nbsp;|&nbsp; Delete Remover</div>
+</div>
+
+<!-- TELA ADICIONAR VÍDEO -->
+<div id="screen-add-video" class="screen">
+  <div class="topbar">
+    <button class="back-btn" id="back-add-video">← Voltar</button>
+    <h2 class="topbar-title">＋ Adicionar Vídeo</h2>
+  </div>
+  <div class="import-area">
+    <p class="import-desc">
+      Cole o link ou o ID de um vídeo do YouTube.
+    </p>
+    <div class="import-fields">
+      <label class="field-label">Título do Vídeo</label>
+      <input type="text" id="inp-video-titulo" class="field-input" placeholder="Ex: Sonic - Gameplay Clássico" />
+
+      <label class="field-label">Link ou ID do YouTube</label>
+      <input type="text" id="inp-video-url" class="field-input"
+        placeholder="Ex: https://youtube.com/watch?v=dQw4w9WgXcQ" />
+      <div class="import-desc" style="margin-top:6px;">
+        Exemplos aceitos:<br>
+        youtube.com/watch?v=ID &nbsp;|&nbsp; youtu.be/ID &nbsp;|&nbsp; só o ID
+      </div>
+    </div>
+    <button class="btn-primary" id="btn-confirmar-add-video">✔ Adicionar Vídeo</button>
+    <div id="add-video-status" class="import-status"></div>
+  </div>
+</div>
+
+<!-- TELA PLAYER DE VÍDEO -->
+<div id="screen-video-player" class="screen video-player-screen">
+  <div class="video-player-topbar">
+    <button class="back-btn" id="back-video-player">← Voltar</button>
+    <span class="video-player-titulo" id="video-player-titulo"></span>
+  </div>
+  <div class="video-player-wrap">
+    <iframe id="video-iframe"
+      src=""
+      frameborder="0"
+      allow="autoplay; fullscreen; accelerometer; gyroscope; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+  </div>
+</div>
+
 <!-- TELA CONFIGURAÇÕES -->
 <div id="screen-config" class="screen">
   <div class="topbar">
@@ -100,7 +160,7 @@
     </div>
     <div class="config-item">
       <span class="config-label">Versão</span>
-      <span class="config-value">RetroTV v1.0</span>
+      <span class="config-value">RetroTV v1.1</span>
     </div>
   </div>
   <div class="hint">↑↓ Navegar &nbsp;|&nbsp; Enter Selecionar &nbsp;|&nbsp; Backspace Voltar</div>
